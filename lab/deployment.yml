@@ -1,51 +1,71 @@
 apiVersion: v1
-kind: apiVersion: extensions/v1beta1
+kind: apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  my-name
+  name:  MYAPP
+  namespace: default
   labels:
-    name:  my-name
+    app:  MYAPP
 spec:
+  selector:
+    matchLabels:
+      app: MYAPP
+  replicas: 1
   strategy:
     rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
     type: RollingUpdate
   template:
     metadata:
       labels:
-        name:  my-name
+        app:  MYAPP
     spec:
+      # initContainers:
+        # Init containers are exactly like regular containers, except:
+          # - Init containers always run to completion.
+          # - Each init container must complete successfully before the next one starts.
       containers:
-      - image:  ipedrazas/docmock
-        name:  my-name
+      - name:  MYAPP
+        image:  MYAPP:latest
         resources:
           requests:
-            cpu: "20m"
-            memory: "55M"
+            cpu: 100m
+            memory: 100Mi
+          limits:
+            cpu: 100m
+            memory: 100Mi
         livenessProbe:
-          httpGet:
-            path: /_status/healthz
-            port: 5000
-          initialDelaySeconds: 90
-          timeoutSeconds: 10
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /_status/healthz
-            port: 5000
-          initialDelaySeconds: 30
-          timeoutSeconds: 10
+            port: 80
+          initialDelaySeconds: 5
+          timeoutSeconds: 2
+          successThreshold: 1
+          failureThreshold: 3
+          periodSeconds: 10
         env:
-        - name:  ENVVARNAME
-          value:  ENVVARVALUE       
+        - name: DB_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: MYAPP
+              key: DB_HOST
         ports:
-        - containerPort:  5000
-          name:  my-name
+        - containerPort:  80
+          name:  MYAPP
         volumeMounts:
-        - mountPath: /data
-          name: data
+        - name: localtime
+          mountPath: /etc/localtime
       volumes:
-        - name: data
-          emptyDir: {}
+        - name: localtime
+          hostPath:
+            path: /usr/share/zoneinfo/Asia/Shanghai
       restartPolicy: Always
-      imagePullPolicy: Always
