@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  namespace: namespace1
+  name: workload-1
+  labels:
+    team: "team-1"
+spec:
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+      - topologyKey: "kubernetes.io/hostname"
+        namespaces:
+          - shared-services
+        labelSelector:
+          matchExpressions:
+          - key: "type"
+            operator: In
+            values: ["monitoring"]

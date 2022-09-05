@@ -1,0 +1,11 @@
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+metadata: 
+  name: dev-cluster
+  region: eu-west-1
+nodeGroups:
+  - name: ng-monitoring
+    instanceType: c5.8xlarge
+    desiredCapacity: 2
+    taints:
+      monitoring: "true:NoSchedule"
